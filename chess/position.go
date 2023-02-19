@@ -78,8 +78,8 @@ type Board struct {
 func (b *Board) Get(s Square) (Piece, bool) {
 	for t := Pawn; t <= King; t++ {
 		if b.Types[t].Get(s) {
-			c := Color(b.Colors[White.Int()].Get(s))
-			return Piece{c, t}, true
+			isBlack := b.Colors[Black.Int()].Get(s)
+			return Piece{Color(isBlack), t}, true
 		}
 	}
 	return Piece{}, false
