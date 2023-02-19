@@ -87,7 +87,7 @@ func (p *Position) Move(m Move) (reset bool) {
 		}
 	}
 
-	// Update the "to" square.
+	// Place the from piece on the to square.
 	if m.IsPromotion {
 		fromPiece.Type = m.Promotion
 	}
