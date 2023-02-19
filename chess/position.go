@@ -6,29 +6,27 @@ type Position struct {
 	CastleRights   CastleRights
 	EnPassantRight EnPassantRight
 	ActiveColor    Color
-
-	// The number of plies since the last capture or pawn movement.
-	// See FIDE [Laws of Chess], Article 9.6.2.
-	//
-	// [Laws of Chess]: https://handbook.fide.com/chapter/E012023
-	Rule75 uint8
 }
 
 // Move applies a move to the position. The move must be legal.
-func (p *Position) Move(m Move) {
+//
+// Move returns true if it resets the FIDE 50-move and 75-move rule
+// counters. See FIDE [Laws of Chess], Articles 9.3 and 9.6.2.
+//
+// [Laws of Chess]: https://handbook.fide.com/chapter/E012023
+func (p *Position) Move(m Move) (reset bool) {
+	// Determine whether move counters must be reset.
+	fromPiece, _ := p.Board.Get(m.From)
+	_, isCapture := p.Board.Get(m.To)
+	if fromPiece.Type == Pawn || isCapture {
+		reset = true
+	}
+
 	// Invert the active color.
 	p.ActiveColor = !p.ActiveColor
 
-	// Update the 75-move-rule counter.
-	fromPiece, _ := p.Board.Get(m.From)
-	toPiece, isCapture := p.Board.Get(m.To)
-	if fromPiece.Type == Pawn || isCapture {
-		p.Rule75 = 0
-	} else {
-		p.Rule75++
-	}
-
 	// Update the en passant right.
+	p.EnPassantRight.Valid = false
 	if fromPiece.Type == Pawn {
 		fromRank, toRank := m.From.Rank(), m.To.Rank()
 		switch {
@@ -36,22 +34,17 @@ func (p *Position) Move(m Move) {
 			p.EnPassantRight = EnPassantRight{Square: m.From.Above(), Valid: true}
 		case fromRank == Rank7 && toRank == Rank5:
 			p.EnPassantRight = EnPassantRight{Square: m.From.Below(), Valid: true}
-		default:
-			p.EnPassantRight.Valid = false
 		}
-	} else {
-		p.EnPassantRight.Valid = false
 	}
 
 	// Update the "from" square.
 	p.Board.ClearPiece(fromPiece, m.From)
 
 	// Update the "to" square.
-	toPiece = fromPiece
 	if m.IsPromotion {
-		toPiece.Type = m.Promotion
+		fromPiece.Type = m.Promotion
 	}
-	p.Board.SetPiece(toPiece, m.To)
+	p.Board.SetPiece(fromPiece, m.To)
 
 	// Handle castling.
 	castleRightsUsed := m.CastleRightsUsed()
@@ -66,6 +59,8 @@ func (p *Position) Move(m Move) {
 	case BlackQueenSide:
 		p.Board.MovePieceToEmptySquare(Piece{Black, Rook}, A8, D8)
 	}
+
+	return
 }
 
 // A Board describes the placement of pieces.
@@ -155,3 +150,13 @@ type EnPassantRight struct {
 	Square Square
 	Valid  bool // Valid is true if an en passant target square exists.
 }
+
+// An Outcome represents the outcome of a game.
+type Outcome int
+
+const (
+	Undecided Outcome = iota
+	BlackWon
+	Draw
+	WhiteWon
+)
