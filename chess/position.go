@@ -47,10 +47,9 @@ func (p *Position) Move(m Move) {
 	p.Board.ClearPiece(fromPiece, m.From)
 
 	// Update the "to" square.
+	toPiece = fromPiece
 	if m.IsPromotion {
-		toPiece = Piece{fromPiece.Color, m.Promotion}
-	} else {
-		toPiece = fromPiece
+		toPiece.Type = m.Promotion
 	}
 	p.Board.SetPiece(toPiece, m.To)
 
