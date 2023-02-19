@@ -17,8 +17,8 @@ type Position struct {
 func (p *Position) Move(m Move) (reset bool) {
 	// Determine whether move counters must be reset.
 	fromPiece, _ := p.Board.Get(m.From)
-	_, isCapture := p.Board.Get(m.To)
-	if fromPiece.Type == Pawn || isCapture {
+	_, toPieceExists := p.Board.Get(m.To)
+	if fromPiece.Type == Pawn || toPieceExists {
 		reset = true
 	}
 
@@ -37,28 +37,61 @@ func (p *Position) Move(m Move) (reset bool) {
 		}
 	}
 
-	// Update the "from" square.
+	// Clear the "from" square.
 	p.Board.ClearPiece(fromPiece, m.From)
+
+	// Handle castling logic.
+	var castleRightsUsed CastleRights
+
+	switch fromPiece.Type {
+	case Rook:
+		// Moving a rook from its starting square relinquishes one castling right.
+		switch {
+		case fromPiece.Color == White && m.From == A1:
+			castleRightsUsed = WhiteQueenSide
+		case fromPiece.Color == White && m.From == H1:
+			castleRightsUsed = WhiteKingSide
+		case fromPiece.Color == Black && m.From == A8:
+			castleRightsUsed = BlackQueenSide
+		case fromPiece.Color == Black && m.From == H8:
+			castleRightsUsed = BlackKingSide
+		}
+	case King:
+		// King moves always relinquish both castling rights.
+		if fromPiece.Color == White {
+			castleRightsUsed = WhiteKingSide | WhiteQueenSide
+		} else {
+			castleRightsUsed = BlackKingSide | BlackQueenSide
+		}
+		// If this is a castle move, adjust the castling rook.
+		switch {
+		case m.From == E1 && m.To == G1:
+			p.Board.MovePieceToEmptySquare(Piece{White, Rook}, H1, F1)
+		case m.From == E1 && m.To == C1:
+			p.Board.MovePieceToEmptySquare(Piece{White, Rook}, A1, D1)
+		case m.From == E8 && m.To == G8:
+			p.Board.MovePieceToEmptySquare(Piece{Black, Rook}, H8, F8)
+		case m.From == E8 && m.To == C8:
+			p.Board.MovePieceToEmptySquare(Piece{Black, Rook}, A8, D8)
+		}
+	}
+
+	p.CastleRights.Clear(castleRightsUsed)
+
+	// Handle en passant capture.
+	if fromPiece.Type == Pawn && p.EnPassantRight.Valid && p.EnPassantRight.Square == m.To {
+		if fromPiece.Color == White {
+			p.Board.ClearPiece(Piece{Black, Pawn}, m.To.Below())
+		} else {
+			p.Board.ClearPiece(Piece{White, Pawn}, m.To.Above())
+		}
+	}
 
 	// Update the "to" square.
 	if m.IsPromotion {
 		fromPiece.Type = m.Promotion
 	}
 	p.Board.SetPiece(fromPiece, m.To)
-
-	// Handle castling.
-	castleRightsUsed := m.CastleRightsUsed()
-	p.CastleRights.Clear(castleRightsUsed)
-	switch castleRightsUsed {
-	case WhiteKingSide:
-		p.Board.MovePieceToEmptySquare(Piece{White, Rook}, H1, F1)
-	case WhiteQueenSide:
-		p.Board.MovePieceToEmptySquare(Piece{White, Rook}, A1, D1)
-	case BlackKingSide:
-		p.Board.MovePieceToEmptySquare(Piece{Black, Rook}, H8, F8)
-	case BlackQueenSide:
-		p.Board.MovePieceToEmptySquare(Piece{Black, Rook}, A8, D8)
-	}
 
 	return
 }
