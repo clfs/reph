@@ -3,7 +3,7 @@ package chess
 // Piece is a chess piece.
 type Piece struct {
 	Color Color
-	Role  Role
+	Type  Type
 }
 
 // Color is either White or Black.
@@ -14,11 +14,11 @@ const (
 	Black Color = true
 )
 
-// Role represents a piece's role.
-type Role uint8
+// Type represents a piece type.
+type Type uint8
 
 const (
-	Pawn Role = iota
+	Pawn Type = iota
 	Knight
 	Bishop
 	Rook
