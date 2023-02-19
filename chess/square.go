@@ -70,6 +70,11 @@ const (
 	H8
 )
 
+// NewSquare returns a square at the given file and rank.
+func NewSquare(f File, r Rank) Square {
+	return Square(r)*8 + Square(f)
+}
+
 // File returns the file the square is on.
 func (s Square) File() File {
 	return File(s % 8)
@@ -78,6 +83,11 @@ func (s Square) File() File {
 // Rank returns the rank the square is on.
 func (s Square) Rank() Rank {
 	return Rank(s / 8)
+}
+
+// Bitboard returns a bitboard representing the square.
+func (s Square) Bitboard() Bitboard {
+	return Bitboard(1 << s)
 }
 
 // A File is a column on the chess board.
