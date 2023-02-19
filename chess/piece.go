@@ -14,6 +14,14 @@ const (
 	Black Color = true
 )
 
+// Int returns 0 for White and 1 for Black.
+func (c Color) Int() int {
+	if c == White {
+		return 0
+	}
+	return 1
+}
+
 // Type represents a piece type.
 type Type uint8
 

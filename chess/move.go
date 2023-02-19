@@ -17,6 +17,25 @@ type Move struct {
 	Promotion Type
 }
 
+// CastleRightsUsed returns the castle rights used by the move, if any.
+func (m Move) CastleRightsUsed() CastleRights {
+	if m.From == E1 {
+		if m.To == G1 {
+			return WhiteKingSide
+		} else if m.To == C1 {
+			return WhiteQueenSide
+		}
+	} else if m.From == E8 {
+		if m.To == G8 {
+			return BlackKingSide
+		} else if m.To == C8 {
+			return BlackQueenSide
+		}
+	}
+
+	return 0
+}
+
 // NewMove returns a new move.
 func NewMove(from, to Square) Move {
 	return Move{From: from, To: to}

@@ -90,6 +90,26 @@ func (s Square) Bitboard() Bitboard {
 	return Bitboard(1 << s)
 }
 
+// Above returns the square above s.
+func (s Square) Above() Square {
+	return s + 8
+}
+
+// Below returns the square below s.
+func (s Square) Below() Square {
+	return s - 8
+}
+
+// LeftOf returns the square left of s.
+func (s Square) LeftOf() Square {
+	return s - 1
+}
+
+// RightOf returns the square right of s.
+func (s Square) RightOf() Square {
+	return s + 1
+}
+
 // A File is a column on the chess board.
 type File uint8
 
