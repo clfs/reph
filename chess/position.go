@@ -7,7 +7,7 @@ type Position struct {
 	EnPassantRight EnPassantRight
 	ActiveColor    Color
 
-	// The number of half moves since the last capture or pawn move.
+	// The number of plies since the last capture or pawn movement.
 	// See FIDE [Laws of Chess], Article 9.6.2.
 	//
 	// [Laws of Chess]: https://handbook.fide.com/chapter/E012023
