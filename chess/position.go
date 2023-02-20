@@ -9,8 +9,8 @@ type Position struct {
 }
 
 // NewPosition returns a new starting position.
-func NewPosition() *Position {
-	return &Position{
+func NewPosition() Position {
+	return Position{
 		Board:        NewBoard(),
 		CastleRights: WhiteKingSide | WhiteQueenSide | BlackKingSide | BlackQueenSide,
 	}
@@ -19,9 +19,7 @@ func NewPosition() *Position {
 // Move applies a move to the position. The move must be legal.
 //
 // Move returns true if it resets the FIDE 50-move and 75-move rule
-// counters. See FIDE [Laws of Chess], Articles 9.3 and 9.6.2.
-//
-// [Laws of Chess]: https://handbook.fide.com/chapter/E012023
+// counters. See FIDE Laws of Chess, Articles 9.3 and 9.6.2.
 func (p *Position) Move(m Move) (reset bool) {
 	// Determine whether move counters must be reset.
 	fromPiece, _ := p.Board.Get(m.From)
