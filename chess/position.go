@@ -8,6 +8,14 @@ type Position struct {
 	ActiveColor    Color
 }
 
+// NewPosition returns a new starting position.
+func NewPosition() *Position {
+	return &Position{
+		Board:        NewBoard(),
+		CastleRights: WhiteKingSide | WhiteQueenSide | BlackKingSide | BlackQueenSide,
+	}
+}
+
 // Move applies a move to the position. The move must be legal.
 //
 // Move returns true if it resets the FIDE 50-move and 75-move rule
@@ -100,6 +108,24 @@ func (p *Position) Move(m Move) (reset bool) {
 type Board struct {
 	Types  [6]Bitboard // Piece occupancies indexed by piece type.
 	Colors [2]Bitboard // Piece occupancies indexed by piece color.
+}
+
+// NewBoard returns a new board with all pieces in their starting positions.
+func NewBoard() Board {
+	return Board{
+		Types: [6]Bitboard{
+			0x00FF00000000FF00, // Pawns
+			0x8100000000000081, // Knights
+			0x4200000000000042, // Bishops
+			0x2400000000000024, // Rooks
+			0x0800000000000008, // Queens
+			0x1000000000000010, // Kings
+		},
+		Colors: [2]Bitboard{
+			0x000000000000FFFF, // White
+			0xFFFF000000000000, // Black
+		},
+	}
 }
 
 // Get returns the piece at the given square, if any.
