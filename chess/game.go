@@ -53,3 +53,23 @@ func (g *Game) FEN() (string, error) {
 func (g *Game) PGN() (string, error) {
 	panic("not implemented")
 }
+
+// Move applies a move to the game. The move must be legal.
+func (g *Game) Move(m Move) {
+	p := g.CurrentPosition()
+
+	if p.ActiveColor == Black {
+		g.FullMoveNumber++
+	}
+
+	reset := p.Move(m)
+
+	if reset {
+		g.HalfMoveClock = 0
+	} else {
+		g.HalfMoveClock++
+	}
+
+	g.Positions = append(g.Positions, p)
+	g.Moves = append(g.Moves, m)
+}
