@@ -182,7 +182,7 @@ func NewGameFromFEN(fen string) (*Game, error) {
 	return &game, nil
 }
 
-// FEN returns a FEN string representing the current position.
+// FEN returns a FEN string representing the game's current position.
 func (g *Game) FEN() string {
 	p := g.CurrentPosition()
 	return fmt.Sprintf(
