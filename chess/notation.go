@@ -4,18 +4,6 @@ import (
 	"fmt"
 )
 
-type InvalidFENError string
-
-func (e InvalidFENError) Error() string {
-	return "invalid FEN: " + string(e)
-}
-
-type InvalidGameError string
-
-func (e InvalidGameError) Error() string {
-	return "invalid game: " + string(e)
-}
-
 var fenToPiece = map[string]Piece{
 	"P": {White, Pawn},
 	"N": {White, Knight},
@@ -108,10 +96,10 @@ func NewGameFromFEN(fen string) (*Game, error) {
 		&boardFEN, &colorFEN, &castlingFEN, &enPassantFEN, &game.HalfMoveClock, &game.FullMoveNumber,
 	)
 	if err != nil {
-		return nil, InvalidFENError(fmt.Sprintf("bad fmt.Sscanf: %v", err))
+		return nil, fmt.Errorf("bad fmt.Sscanf: %w", err)
 	}
 	if n != 6 {
-		return nil, InvalidFENError(fmt.Sprintf("wrong number of fields: %d", n))
+		return nil, fmt.Errorf("wrong number of fields: %d", n)
 	}
 
 	board, err := newBoardFromFEN(boardFEN)
@@ -167,7 +155,7 @@ func newBoardFromFEN(s string) (Board, error) {
 func newPieceFromFEN(s string) (Piece, error) {
 	piece, ok := fenToPiece[s]
 	if !ok {
-		return Piece{}, InvalidFENError(fmt.Sprintf("invalid piece: %q", s))
+		return Piece{}, fmt.Errorf("invalid piece: %q", s)
 	}
 	return piece, nil
 }
@@ -175,7 +163,7 @@ func newPieceFromFEN(s string) (Piece, error) {
 func newColorFromFEN(fen string) (Color, error) {
 	c, ok := fenToColor[fen]
 	if !ok {
-		return White, InvalidFENError(fmt.Sprintf("invalid color: %q", fen))
+		return White, fmt.Errorf("invalid color: %q", fen)
 	}
 	return c, nil
 }
@@ -183,7 +171,7 @@ func newColorFromFEN(fen string) (Color, error) {
 func newCastleRightsFromFEN(s string) (CastleRights, error) {
 	r, ok := fenToCastleRights[s]
 	if !ok {
-		return 0, InvalidFENError(fmt.Sprintf("invalid castle rights: %q", s))
+		return 0, fmt.Errorf("invalid castle rights: %q", s)
 	}
 	return r, nil
 }
@@ -191,7 +179,7 @@ func newCastleRightsFromFEN(s string) (CastleRights, error) {
 func newEnPassantRightFromFEN(fen string) (EnPassantRight, error) {
 	r, ok := fenToEnPassantRight[fen]
 	if !ok {
-		return EnPassantRight{}, InvalidFENError(fmt.Sprintf("invalid en passant right: %q", fen))
+		return EnPassantRight{}, fmt.Errorf("invalid en passant right: %q", fen)
 	}
 	return r, nil
 }
