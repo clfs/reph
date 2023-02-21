@@ -1,11 +1,19 @@
 package chess
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type InvalidFENError string
 
 func (e InvalidFENError) Error() string {
 	return "invalid FEN: " + string(e)
+}
+
+type InvalidGameError string
+
+func (e InvalidGameError) Error() string {
+	return "invalid game: " + string(e)
 }
 
 var fenToPiece = map[string]Piece{
@@ -76,18 +84,11 @@ func invertMap[K, V comparable](m map[K]V) map[V]K {
 }
 
 var (
-	pieceToFEN          map[Piece]string
-	colorToFEN          map[Color]string
-	castleRightsToFEN   map[CastleRights]string
-	enPassantRightToFEN map[EnPassantRight]string
-)
-
-func init() {
-	pieceToFEN = invertMap(fenToPiece)
-	colorToFEN = invertMap(fenToColor)
-	castleRightsToFEN = invertMap(fenToCastleRights)
+	pieceToFEN          = invertMap(fenToPiece)
+	colorToFEN          = invertMap(fenToColor)
+	castleRightsToFEN   = invertMap(fenToCastleRights)
 	enPassantRightToFEN = invertMap(fenToEnPassantRight)
-}
+)
 
 // NewGameFromFEN returns a new game from a FEN string.
 // It returns InvalidFENError on failure.
@@ -107,7 +108,7 @@ func NewGameFromFEN(fen string) (*Game, error) {
 		&boardFEN, &colorFEN, &castlingFEN, &enPassantFEN, &game.HalfMoveClock, &game.FullMoveNumber,
 	)
 	if err != nil {
-		return nil, InvalidFENError("unscannable fields")
+		return nil, InvalidFENError(fmt.Sprintf("bad fmt.Sscanf: %v", err))
 	}
 	if n != 6 {
 		return nil, InvalidFENError(fmt.Sprintf("wrong number of fields: %d", n))
@@ -141,55 +142,40 @@ func NewGameFromFEN(fen string) (*Game, error) {
 }
 
 // FEN returns a FEN string representing the current position.
+// It returns InvalidGameError on failure.
 func (g *Game) FEN() (string, error) {
 	panic("not implemented")
 }
 
-func newBoardFromFEN(fen string) (Board, error) {
+func newBoardFromFEN(s string) (Board, error) {
 	var b Board
 
-	s := A8
-	for _, r := range fen {
+	sq := A8
+	for _, r := range s {
 		switch r {
 		case '1', '2', '3', '4', '5', '6', '7', '8':
-			s = s.NextN(int(r - '0'))
+			sq = sq.NextN(int(r - '0'))
 		case '/':
-			s = s.PrevN(16)
+			sq = sq.PrevN(16)
 		default:
 			piece, err := newPieceFromFEN(string(r))
 			if err != nil {
 				return Board{}, err
 			}
-			b.SetPiece(piece, s)
-			s = s.Next()
+			b.SetPiece(piece, sq)
+			sq = sq.Next()
 		}
 	}
 
 	return b, nil
 }
 
-func newCastleRightsFromFEN(fen string) (CastleRights, error) {
-	r, ok := fenToCastleRights[fen]
+func newPieceFromFEN(s string) (Piece, error) {
+	piece, ok := fenToPiece[s]
 	if !ok {
-		return 0, InvalidFENError(fmt.Sprintf("invalid castle rights: %q", fen))
-	}
-	return r, nil
-}
-
-func newPieceFromFEN(fen string) (Piece, error) {
-	piece, ok := fenToPiece[fen]
-	if !ok {
-		return Piece{}, InvalidFENError(fmt.Sprintf("invalid piece: %q", fen))
+		return Piece{}, InvalidFENError(fmt.Sprintf("invalid piece: %q", s))
 	}
 	return piece, nil
-}
-
-func newEnPassantRightFromFEN(fen string) (EnPassantRight, error) {
-	r, ok := fenToEnPassantRight[fen]
-	if !ok {
-		return EnPassantRight{}, InvalidFENError(fmt.Sprintf("invalid e.p. right: %q", fen))
-	}
-	return r, nil
 }
 
 func newColorFromFEN(fen string) (Color, error) {
@@ -198,4 +184,20 @@ func newColorFromFEN(fen string) (Color, error) {
 		return White, InvalidFENError(fmt.Sprintf("invalid color: %q", fen))
 	}
 	return c, nil
+}
+
+func newCastleRightsFromFEN(s string) (CastleRights, error) {
+	r, ok := fenToCastleRights[s]
+	if !ok {
+		return 0, InvalidFENError(fmt.Sprintf("invalid castle rights: %q", s))
+	}
+	return r, nil
+}
+
+func newEnPassantRightFromFEN(fen string) (EnPassantRight, error) {
+	r, ok := fenToEnPassantRight[fen]
+	if !ok {
+		return EnPassantRight{}, InvalidFENError(fmt.Sprintf("invalid en passant right: %q", fen))
+	}
+	return r, nil
 }
