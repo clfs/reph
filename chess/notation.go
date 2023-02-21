@@ -8,37 +8,27 @@ func (e InvalidFENError) Error() string {
 	return "invalid FEN: " + string(e)
 }
 
-var pieceFromFEN = map[rune]Piece{
-	'P': {White, Pawn},
-	'N': {White, Knight},
-	'B': {White, Bishop},
-	'R': {White, Rook},
-	'Q': {White, Queen},
-	'K': {White, King},
-	'p': {Black, Pawn},
-	'n': {Black, Knight},
-	'b': {Black, Bishop},
-	'r': {Black, Rook},
-	'q': {Black, Queen},
-	'k': {Black, King},
+var fenToPiece = map[string]Piece{
+	"P": {White, Pawn},
+	"N": {White, Knight},
+	"B": {White, Bishop},
+	"R": {White, Rook},
+	"Q": {White, Queen},
+	"K": {White, King},
+	"p": {Black, Pawn},
+	"n": {Black, Knight},
+	"b": {Black, Bishop},
+	"r": {Black, Rook},
+	"q": {Black, Queen},
+	"k": {Black, King},
 }
 
-var fenFromPiece = map[Piece]rune{
-	{White, Pawn}:   'P',
-	{White, Knight}: 'N',
-	{White, Bishop}: 'B',
-	{White, Rook}:   'R',
-	{White, Queen}:  'Q',
-	{White, King}:   'K',
-	{Black, Pawn}:   'p',
-	{Black, Knight}: 'n',
-	{Black, Bishop}: 'b',
-	{Black, Rook}:   'r',
-	{Black, Queen}:  'q',
-	{Black, King}:   'k',
+var fenToColor = map[string]Color{
+	"w": White,
+	"b": Black,
 }
 
-var castleRightsFromFEN = map[string]CastleRights{
+var fenToCastleRights = map[string]CastleRights{
 	"-":    0,
 	"K":    WhiteKingSide,
 	"Q":    WhiteQueenSide,
@@ -57,7 +47,7 @@ var castleRightsFromFEN = map[string]CastleRights{
 	"KQkq": WhiteKingSide | WhiteQueenSide | BlackKingSide | BlackQueenSide,
 }
 
-var enPassantRightFromFEN = map[string]EnPassantRight{
+var fenToEnPassantRight = map[string]EnPassantRight{
 	"-":  {Valid: false},
 	"a3": {Square: A3, Valid: true},
 	"b3": {Square: B3, Valid: true},
@@ -77,7 +67,30 @@ var enPassantRightFromFEN = map[string]EnPassantRight{
 	"h6": {Square: H6, Valid: true},
 }
 
+func invertMap[K, V comparable](m map[K]V) map[V]K {
+	out := make(map[V]K)
+	for k, v := range m {
+		out[v] = k
+	}
+	return out
+}
+
+var (
+	pieceToFEN          map[Piece]string
+	colorToFEN          map[Color]string
+	castleRightsToFEN   map[CastleRights]string
+	enPassantRightToFEN map[EnPassantRight]string
+)
+
+func init() {
+	pieceToFEN = invertMap(fenToPiece)
+	colorToFEN = invertMap(fenToColor)
+	castleRightsToFEN = invertMap(fenToCastleRights)
+	enPassantRightToFEN = invertMap(fenToEnPassantRight)
+}
+
 // NewGameFromFEN returns a new game from a FEN string.
+// It returns InvalidFENError on failure.
 func NewGameFromFEN(fen string) (*Game, error) {
 	var game Game
 
@@ -143,7 +156,7 @@ func newBoardFromFEN(fen string) (Board, error) {
 		case '/':
 			s = s.PrevN(16)
 		default:
-			piece, err := newPieceFromFEN(r)
+			piece, err := newPieceFromFEN(string(r))
 			if err != nil {
 				return Board{}, err
 			}
@@ -156,15 +169,15 @@ func newBoardFromFEN(fen string) (Board, error) {
 }
 
 func newCastleRightsFromFEN(fen string) (CastleRights, error) {
-	r, ok := castleRightsFromFEN[fen]
+	r, ok := fenToCastleRights[fen]
 	if !ok {
 		return 0, InvalidFENError(fmt.Sprintf("invalid castle rights: %q", fen))
 	}
 	return r, nil
 }
 
-func newPieceFromFEN(fen rune) (Piece, error) {
-	piece, ok := pieceFromFEN[fen]
+func newPieceFromFEN(fen string) (Piece, error) {
+	piece, ok := fenToPiece[fen]
 	if !ok {
 		return Piece{}, InvalidFENError(fmt.Sprintf("invalid piece: %q", fen))
 	}
@@ -172,7 +185,7 @@ func newPieceFromFEN(fen rune) (Piece, error) {
 }
 
 func newEnPassantRightFromFEN(fen string) (EnPassantRight, error) {
-	r, ok := enPassantRightFromFEN[fen]
+	r, ok := fenToEnPassantRight[fen]
 	if !ok {
 		return EnPassantRight{}, InvalidFENError(fmt.Sprintf("invalid e.p. right: %q", fen))
 	}
@@ -180,12 +193,9 @@ func newEnPassantRightFromFEN(fen string) (EnPassantRight, error) {
 }
 
 func newColorFromFEN(fen string) (Color, error) {
-	switch fen {
-	case "w":
-		return White, nil
-	case "b":
-		return Black, nil
-	default:
+	c, ok := fenToColor[fen]
+	if !ok {
 		return White, InvalidFENError(fmt.Sprintf("invalid color: %q", fen))
 	}
+	return c, nil
 }
