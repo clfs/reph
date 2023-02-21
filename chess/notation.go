@@ -141,12 +141,6 @@ func NewGameFromFEN(fen string) (*Game, error) {
 	return &game, nil
 }
 
-// FEN returns a FEN string representing the current position.
-// It returns InvalidGameError on failure.
-func (g *Game) FEN() (string, error) {
-	panic("not implemented")
-}
-
 func newBoardFromFEN(s string) (Board, error) {
 	var b Board
 
@@ -200,4 +194,10 @@ func newEnPassantRightFromFEN(fen string) (EnPassantRight, error) {
 		return EnPassantRight{}, InvalidFENError(fmt.Sprintf("invalid en passant right: %q", fen))
 	}
 	return r, nil
+}
+
+// FEN returns a FEN string representing the current position.
+// It returns InvalidGameError on failure.
+func (g *Game) FEN() (string, error) {
+	panic("not implemented")
 }
