@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+const StartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
 var fenToPiece = map[string]Piece{
 	"P": {White, Pawn},
 	"N": {White, Knight},

@@ -113,9 +113,9 @@ func NewBoard() Board {
 	return Board{
 		Types: [6]Bitboard{
 			0x00FF00000000FF00, // Pawns
-			0x8100000000000081, // Knights
-			0x4200000000000042, // Bishops
-			0x2400000000000024, // Rooks
+			0x4200000000000042, // Knights
+			0x2400000000000024, // Bishops
+			0x8100000000000081, // Rooks
 			0x0800000000000008, // Queens
 			0x1000000000000010, // Kings
 		},
