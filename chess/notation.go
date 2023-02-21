@@ -81,23 +81,23 @@ var (
 	enPassantRightToFEN = invertMap(fenToEnPassantRight)
 )
 
-func fenToBoard(s string) (Board, bool) {
+func fenToBoard(boardFEN string) (Board, bool) {
 	var b Board
 
-	sq := A8
-	for _, r := range s {
+	s := A8
+	for _, r := range boardFEN {
 		switch r {
 		case '1', '2', '3', '4', '5', '6', '7', '8':
-			sq = sq.NextN(int(r - '0'))
+			s = s.NextN(int(r - '0'))
 		case '/':
-			sq = sq.PrevN(16)
+			s = s.PrevN(16)
 		default:
-			piece, ok := fenToPiece[string(r)]
+			p, ok := fenToPiece[string(r)]
 			if !ok {
 				return Board{}, false
 			}
-			b.SetPiece(piece, sq)
-			sq = sq.Next()
+			b.SetPiece(p, s)
+			s = s.Next()
 		}
 	}
 
