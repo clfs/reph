@@ -2,6 +2,7 @@ package chess
 
 import (
 	"fmt"
+	"strings"
 )
 
 var fenToPiece = map[string]Piece{
@@ -78,58 +79,7 @@ var (
 	enPassantRightToFEN = invertMap(fenToEnPassantRight)
 )
 
-// NewGameFromFEN returns a new game from a FEN string.
-// It returns InvalidFENError on failure.
-func NewGameFromFEN(fen string) (*Game, error) {
-	var game Game
-
-	var (
-		boardFEN     string
-		colorFEN     string
-		castlingFEN  string
-		enPassantFEN string
-	)
-
-	n, err := fmt.Sscanf(
-		fen,
-		"%s %s %s %s %d %d",
-		&boardFEN, &colorFEN, &castlingFEN, &enPassantFEN, &game.HalfMoveClock, &game.FullMoveNumber,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("bad fmt.Sscanf: %w", err)
-	}
-	if n != 6 {
-		return nil, fmt.Errorf("wrong number of fields: %d", n)
-	}
-
-	board, err := newBoardFromFEN(boardFEN)
-	if err != nil {
-		return nil, err
-	}
-	color, err := newColorFromFEN(colorFEN)
-	if err != nil {
-		return nil, err
-	}
-	castleRights, err := newCastleRightsFromFEN(castlingFEN)
-	if err != nil {
-		return nil, err
-	}
-	enPassantRight, err := newEnPassantRightFromFEN(enPassantFEN)
-	if err != nil {
-		return nil, err
-	}
-
-	game.Positions = []Position{{
-		Board:          board,
-		ActiveColor:    color,
-		CastleRights:   castleRights,
-		EnPassantRight: enPassantRight,
-	}}
-
-	return &game, nil
-}
-
-func newBoardFromFEN(s string) (Board, error) {
+func fenToBoard(s string) (Board, bool) {
 	var b Board
 
 	sq := A8
@@ -140,52 +90,106 @@ func newBoardFromFEN(s string) (Board, error) {
 		case '/':
 			sq = sq.PrevN(16)
 		default:
-			piece, err := newPieceFromFEN(string(r))
-			if err != nil {
-				return Board{}, err
+			piece, ok := fenToPiece[string(r)]
+			if !ok {
+				return Board{}, false
 			}
 			b.SetPiece(piece, sq)
 			sq = sq.Next()
 		}
 	}
 
-	return b, nil
+	return b, true
 }
 
-func newPieceFromFEN(s string) (Piece, error) {
-	piece, ok := fenToPiece[s]
-	if !ok {
-		return Piece{}, fmt.Errorf("invalid piece: %q", s)
+func boardToFEN(b Board) string {
+	var sb strings.Builder
+
+	for r := Rank8; r <= Rank8; r-- {
+		skip := 0
+		for f := FileA; f <= FileH; f++ {
+			piece, ok := b.Get(NewSquare(f, r))
+			if !ok {
+				skip++
+				continue
+			}
+			if skip > 0 {
+				fmt.Fprintf(&sb, "%d", skip)
+				skip = 0
+			}
+			fmt.Fprintf(&sb, "%s", pieceToFEN[piece])
+		}
+		if skip > 0 {
+			fmt.Fprintf(&sb, "%d", skip)
+		}
+		if r != Rank1 {
+			fmt.Fprintf(&sb, "/")
+		}
 	}
-	return piece, nil
+
+	return sb.String()
 }
 
-func newColorFromFEN(fen string) (Color, error) {
-	c, ok := fenToColor[fen]
-	if !ok {
-		return White, fmt.Errorf("invalid color: %q", fen)
-	}
-	return c, nil
-}
+// NewGameFromFEN returns a new game from a FEN string.
+func NewGameFromFEN(fen string) (*Game, error) {
+	var game Game
 
-func newCastleRightsFromFEN(s string) (CastleRights, error) {
-	r, ok := fenToCastleRights[s]
-	if !ok {
-		return 0, fmt.Errorf("invalid castle rights: %q", s)
-	}
-	return r, nil
-}
+	var (
+		boardFEN     string
+		colorFEN     string
+		castleFEN    string
+		enPassantFEN string
+	)
 
-func newEnPassantRightFromFEN(fen string) (EnPassantRight, error) {
-	r, ok := fenToEnPassantRight[fen]
-	if !ok {
-		return EnPassantRight{}, fmt.Errorf("invalid en passant right: %q", fen)
+	n, err := fmt.Sscanf(
+		fen,
+		"%s %s %s %s %d %d",
+		&boardFEN, &colorFEN, &castleFEN, &enPassantFEN, &game.HalfMoveClock, &game.FullMoveNumber,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("bad fmt.Sscanf: %w", err)
 	}
-	return r, nil
+	if n != 6 {
+		return nil, fmt.Errorf("wrong number of fields: %d", n)
+	}
+
+	var (
+		p  Position
+		ok bool
+	)
+
+	p.Board, ok = fenToBoard(boardFEN)
+	if !ok {
+		return nil, fmt.Errorf("invalid board: %q", boardFEN)
+	}
+	p.ActiveColor, ok = fenToColor[colorFEN]
+	if !ok {
+		return nil, fmt.Errorf("invalid color: %q", colorFEN)
+	}
+	p.CastleRights, ok = fenToCastleRights[castleFEN]
+	if !ok {
+		return nil, fmt.Errorf("invalid castling rights: %q", castleFEN)
+	}
+	p.EnPassantRight, ok = fenToEnPassantRight[enPassantFEN]
+	if !ok {
+		return nil, fmt.Errorf("invalid en passant right: %q", enPassantFEN)
+	}
+
+	game.Positions = []Position{p}
+
+	return &game, nil
 }
 
 // FEN returns a FEN string representing the current position.
-// It returns InvalidGameError on failure.
-func (g *Game) FEN() (string, error) {
-	panic("not implemented")
+func (g *Game) FEN() string {
+	p := g.CurrentPosition()
+	return fmt.Sprintf(
+		"%s %s %s %s %d %d",
+		boardToFEN(p.Board),
+		colorToFEN[p.ActiveColor],
+		castleRightsToFEN[p.CastleRights],
+		enPassantRightToFEN[p.EnPassantRight],
+		g.HalfMoveClock,
+		g.FullMoveNumber,
+	)
 }

@@ -91,34 +91,34 @@ func (s Square) Bitboard() Bitboard {
 	return Bitboard(1 << s)
 }
 
-// Above returns the square above s.
+// Above returns the square above s, wrapping around.
 func (s Square) Above() Square {
-	return s + 8
+	return (s + 8) % 64
 }
 
-// Below returns the square below s.
+// Below returns the square below s, wrapping around.
 func (s Square) Below() Square {
-	return s - 8
+	return (s - 8) % 64
 }
 
-// Next returns the square after s.
+// Next returns the square after s, wrapping around.
 func (s Square) Next() Square {
-	return s + 1
+	return (s + 1) % 64
 }
 
-// NextN returns the square n squares after s.
+// NextN returns the square n squares after s, wrapping around.
 func (s Square) NextN(n int) Square {
-	return s + Square(n)
+	return (s + Square(n)) % 64
 }
 
-// Prev returns the square before s.
+// Prev returns the square before s, wrapping around.
 func (s Square) Prev() Square {
-	return s - 1
+	return (s - 1) % 64
 }
 
-// PrevN returns the square n squares before s.
+// PrevN returns the square n squares before s, wrapping around.
 func (s Square) PrevN(n int) Square {
-	return s - Square(n)
+	return (s - Square(n)) % 64
 }
 
 // A File is a column on the chess board.
