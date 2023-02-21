@@ -1,6 +1,7 @@
 package chess
 
 // A Square represents a square on the chess board.
+// Squares are ordered left-to-right, then bottom-to-top.
 type Square uint8
 
 const (
@@ -100,14 +101,24 @@ func (s Square) Below() Square {
 	return s - 8
 }
 
-// LeftOf returns the square left of s.
-func (s Square) LeftOf() Square {
+// Next returns the square after s.
+func (s Square) Next() Square {
+	return s + 1
+}
+
+// NextN returns the square n squares after s.
+func (s Square) NextN(n int) Square {
+	return s + Square(n)
+}
+
+// Prev returns the square before s.
+func (s Square) Prev() Square {
 	return s - 1
 }
 
-// RightOf returns the square right of s.
-func (s Square) RightOf() Square {
-	return s + 1
+// PrevN returns the square n squares before s.
+func (s Square) PrevN(n int) Square {
+	return s - Square(n)
 }
 
 // A File is a column on the chess board.
