@@ -1,7 +1,7 @@
 package chess
 
 // A Square represents a square on the chess board.
-// Squares are ordered left-to-right, then bottom-to-top.
+// Squares are ordered left to right, then bottom to top.
 type Square uint8
 
 const (
