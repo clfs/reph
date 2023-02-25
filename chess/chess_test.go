@@ -1,8 +1,6 @@
 package chess
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestPosition_Move(t *testing.T) {
 	p := NewPosition()
