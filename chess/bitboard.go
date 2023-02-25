@@ -1,7 +1,7 @@
 package chess
 
-// Bitboard is an integer where each bit represents one square.
-// From LSB to MSB, the bits represent A1, B1, ..., H1, A2, ..., H8.
+// Bitboard is an integer where each bit represents one square. From LSB to MSB,
+// the bits represent squares from left to right, then bottom to top.
 type Bitboard uint64
 
 // Get returns true if the square is set.
