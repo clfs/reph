@@ -30,9 +30,7 @@ func (g *Game) Move(m Move) {
 		g.FullMoveNumber++
 	}
 
-	reset := p.Move(m)
-
-	if reset {
+	if reset := p.Move(m); reset {
 		g.HalfMoveClock = 0
 	} else {
 		g.HalfMoveClock++
