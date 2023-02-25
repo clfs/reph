@@ -24,16 +24,16 @@ func (p *Position) Move(m Move) (reset bool) {
 	// Determine whether move counters must be reset.
 	fromPiece, _ := p.Board.Get(m.From)
 	_, toPieceExists := p.Board.Get(m.To)
-	if fromPiece.Type == Pawn || toPieceExists {
+	if fromPiece.Type() == Pawn || toPieceExists {
 		reset = true
 	}
 
 	// Invert the active color.
-	p.ActiveColor = !p.ActiveColor
+	p.ActiveColor = p.ActiveColor.Other()
 
 	// Update the en passant right.
 	p.EnPassantRight.Valid = false
-	if fromPiece.Type == Pawn {
+	if fromPiece.Type() == Pawn {
 		fromRank, toRank := m.From.Rank(), m.To.Rank()
 		switch {
 		case fromRank == Rank2 && toRank == Rank4:
@@ -49,20 +49,20 @@ func (p *Position) Move(m Move) (reset bool) {
 	// Handle castling logic.
 	var castleRightsToClear CastleRights
 
-	switch fromPiece.Type {
+	switch fromPiece.Type() {
 	case Rook:
 		switch {
-		case fromPiece.Color == White && m.From == A1:
+		case fromPiece.Color() == White && m.From == A1:
 			castleRightsToClear = WhiteQueenSide
-		case fromPiece.Color == White && m.From == H1:
+		case fromPiece.Color() == White && m.From == H1:
 			castleRightsToClear = WhiteKingSide
-		case fromPiece.Color == Black && m.From == A8:
+		case fromPiece.Color() == Black && m.From == A8:
 			castleRightsToClear = BlackQueenSide
-		case fromPiece.Color == Black && m.From == H8:
+		case fromPiece.Color() == Black && m.From == H8:
 			castleRightsToClear = BlackKingSide
 		}
 	case King:
-		if fromPiece.Color == White {
+		if fromPiece.Color() == White {
 			castleRightsToClear = WhiteKingSide | WhiteQueenSide
 		} else {
 			castleRightsToClear = BlackKingSide | BlackQueenSide
@@ -70,21 +70,21 @@ func (p *Position) Move(m Move) (reset bool) {
 		// If this is a castle move, adjust the castling rook.
 		switch {
 		case m.From == E1 && m.To == G1:
-			p.Board.Move(Piece{White, Rook}, H1, F1)
+			p.Board.Move(WhiteRook, H1, F1)
 		case m.From == E1 && m.To == C1:
-			p.Board.Move(Piece{White, Rook}, A1, D1)
+			p.Board.Move(WhiteRook, A1, D1)
 		case m.From == E8 && m.To == G8:
-			p.Board.Move(Piece{Black, Rook}, H8, F8)
+			p.Board.Move(BlackRook, H8, F8)
 		case m.From == E8 && m.To == C8:
-			p.Board.Move(Piece{Black, Rook}, A8, D8)
+			p.Board.Move(BlackRook, A8, D8)
 		}
 	}
 
 	p.CastleRights.Clear(castleRightsToClear)
 
 	// Handle en passant capture.
-	if fromPiece.Type == Pawn && p.EnPassantRight.Valid && p.EnPassantRight.Square == m.To {
-		if fromPiece.Color == White {
+	if fromPiece.Type() == Pawn && p.EnPassantRight.Valid && p.EnPassantRight.Square == m.To {
+		if fromPiece.Color() == White {
 			p.Board.Clear(m.To.Below())
 		} else {
 			p.Board.Clear(m.To.Above())
@@ -93,7 +93,7 @@ func (p *Position) Move(m Move) (reset bool) {
 
 	// Place the from piece on the to square.
 	if m.IsPromotion {
-		fromPiece.Type = m.Promotion
+		fromPiece = NewPiece(fromPiece.Color(), m.Promotion)
 	}
 	p.Board.Set(fromPiece, m.To)
 
@@ -128,27 +128,30 @@ func NewBoard() Board {
 func (b *Board) Get(s Square) (Piece, bool) {
 	for t := Pawn; t <= King; t++ {
 		if b.Types[t].Get(s) {
-			isBlack := b.Colors[Black.Int()].Get(s)
-			return Piece{Color(isBlack), t}, true
+			if b.Colors[White].Get(s) {
+				return NewPiece(White, t), true
+			} else {
+				return NewPiece(Black, t), true
+			}
 		}
 	}
-	return Piece{}, false
+	return 0, false
 }
 
 // Set sets a piece on a square.
 // Any piece previously occupying the square is removed.
 func (b *Board) Set(p Piece, s Square) {
 	b.Clear(s)
-	b.Types[p.Type].Set(s)
-	b.Colors[p.Color.Int()].Set(s)
+	b.Types[p.Type()].Set(s)
+	b.Colors[p.Color()].Set(s)
 }
 
 // Move moves a piece between squares.
 // Any piece previously occupying the destination square is removed.
 func (b *Board) Move(p Piece, from, to Square) {
 	b.Clear(to)
-	b.Types[p.Type].Clear(from).Set(to)
-	b.Colors[p.Color.Int()].Clear(from).Set(to)
+	b.Types[p.Type()].Clear(from).Set(to)
+	b.Colors[p.Color()].Clear(from).Set(to)
 }
 
 // Clear removes a piece from a square.

@@ -16,8 +16,8 @@ func TestPosition_Move(t *testing.T) {
 	if !ok {
 		t.Error("no piece at e4")
 	}
-	if e4piece.Color != White || e4piece.Type != Pawn {
-		t.Errorf("wrong piece at e4: got %v, want %v", e4piece, Piece{White, Pawn})
+	if e4piece != WhitePawn {
+		t.Errorf("wrong piece at e4: got %v, want %v", e4piece, WhitePawn)
 	}
 
 	_, ok = p.Board.Get(E2)

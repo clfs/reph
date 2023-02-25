@@ -9,18 +9,18 @@ import (
 const StartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 var fenToPiece = map[string]Piece{
-	"P": {White, Pawn},
-	"N": {White, Knight},
-	"B": {White, Bishop},
-	"R": {White, Rook},
-	"Q": {White, Queen},
-	"K": {White, King},
-	"p": {Black, Pawn},
-	"n": {Black, Knight},
-	"b": {Black, Bishop},
-	"r": {Black, Rook},
-	"q": {Black, Queen},
-	"k": {Black, King},
+	"P": WhitePawn,
+	"N": WhiteKnight,
+	"B": WhiteBishop,
+	"R": WhiteRook,
+	"Q": WhiteQueen,
+	"K": WhiteKing,
+	"p": BlackPawn,
+	"n": BlackKnight,
+	"b": BlackBishop,
+	"r": BlackRook,
+	"q": BlackQueen,
+	"k": BlackKing,
 }
 
 var fenToColor = map[string]Color{
