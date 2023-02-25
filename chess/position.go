@@ -47,25 +47,25 @@ func (p *Position) Move(m Move) (reset bool) {
 	p.Board.ClearPiece(fromPiece, m.From)
 
 	// Handle castling logic.
-	var castleRightsUsed CastleRights
+	var castleRightsToClear CastleRights
 
 	switch fromPiece.Type {
 	case Rook:
 		switch {
 		case fromPiece.Color == White && m.From == A1:
-			castleRightsUsed = WhiteQueenSide
+			castleRightsToClear = WhiteQueenSide
 		case fromPiece.Color == White && m.From == H1:
-			castleRightsUsed = WhiteKingSide
+			castleRightsToClear = WhiteKingSide
 		case fromPiece.Color == Black && m.From == A8:
-			castleRightsUsed = BlackQueenSide
+			castleRightsToClear = BlackQueenSide
 		case fromPiece.Color == Black && m.From == H8:
-			castleRightsUsed = BlackKingSide
+			castleRightsToClear = BlackKingSide
 		}
 	case King:
 		if fromPiece.Color == White {
-			castleRightsUsed = WhiteKingSide | WhiteQueenSide
+			castleRightsToClear = WhiteKingSide | WhiteQueenSide
 		} else {
-			castleRightsUsed = BlackKingSide | BlackQueenSide
+			castleRightsToClear = BlackKingSide | BlackQueenSide
 		}
 		// If this is a castle move, adjust the castling rook.
 		switch {
@@ -80,7 +80,7 @@ func (p *Position) Move(m Move) (reset bool) {
 		}
 	}
 
-	p.CastleRights.Clear(castleRightsUsed)
+	p.CastleRights.Clear(castleRightsToClear)
 
 	// Handle en passant capture.
 	if fromPiece.Type == Pawn && p.EnPassantRight.Valid && p.EnPassantRight.Square == m.To {
