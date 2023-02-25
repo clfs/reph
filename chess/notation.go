@@ -97,7 +97,7 @@ func fenToBoard(boardFEN string) (Board, bool) {
 			if !ok {
 				return Board{}, false
 			}
-			b.SetPiece(p, s)
+			b.Set(p, s)
 			s = s.Next()
 		}
 	}

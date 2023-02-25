@@ -44,7 +44,7 @@ func (p *Position) Move(m Move) (reset bool) {
 	}
 
 	// Clear the "from" square.
-	p.Board.ClearPiece(fromPiece, m.From)
+	p.Board.Clear(m.From)
 
 	// Handle castling logic.
 	var castleRightsToClear CastleRights
@@ -70,13 +70,13 @@ func (p *Position) Move(m Move) (reset bool) {
 		// If this is a castle move, adjust the castling rook.
 		switch {
 		case m.From == E1 && m.To == G1:
-			p.Board.MovePieceToEmptySquare(Piece{White, Rook}, H1, F1)
+			p.Board.Move(Piece{White, Rook}, H1, F1)
 		case m.From == E1 && m.To == C1:
-			p.Board.MovePieceToEmptySquare(Piece{White, Rook}, A1, D1)
+			p.Board.Move(Piece{White, Rook}, A1, D1)
 		case m.From == E8 && m.To == G8:
-			p.Board.MovePieceToEmptySquare(Piece{Black, Rook}, H8, F8)
+			p.Board.Move(Piece{Black, Rook}, H8, F8)
 		case m.From == E8 && m.To == C8:
-			p.Board.MovePieceToEmptySquare(Piece{Black, Rook}, A8, D8)
+			p.Board.Move(Piece{Black, Rook}, A8, D8)
 		}
 	}
 
@@ -85,9 +85,9 @@ func (p *Position) Move(m Move) (reset bool) {
 	// Handle en passant capture.
 	if fromPiece.Type == Pawn && p.EnPassantRight.Valid && p.EnPassantRight.Square == m.To {
 		if fromPiece.Color == White {
-			p.Board.ClearPiece(Piece{Black, Pawn}, m.To.Below())
+			p.Board.Clear(m.To.Below())
 		} else {
-			p.Board.ClearPiece(Piece{White, Pawn}, m.To.Above())
+			p.Board.Clear(m.To.Above())
 		}
 	}
 
@@ -95,7 +95,7 @@ func (p *Position) Move(m Move) (reset bool) {
 	if m.IsPromotion {
 		fromPiece.Type = m.Promotion
 	}
-	p.Board.SetPiece(fromPiece, m.To)
+	p.Board.Set(fromPiece, m.To)
 
 	return
 }
@@ -135,44 +135,30 @@ func (b *Board) Get(s Square) (Piece, bool) {
 	return Piece{}, false
 }
 
-// SetPieceOnEmptySquare sets a piece on the given empty square.
-// When available, this is more performant than SetPiece.
-func (b *Board) SetPieceOnEmptySquare(p Piece, s Square) {
+// Set sets a piece on a square.
+// Any piece previously occupying the square is removed.
+func (b *Board) Set(p Piece, s Square) {
+	b.Clear(s)
 	b.Types[p.Type].Set(s)
 	b.Colors[p.Color.Int()].Set(s)
 }
 
-// SetPiece sets a piece on the given square.
-// Any piece on the destination square is removed.
-func (b *Board) SetPiece(p Piece, s Square) {
-	toPiece, ok := b.Get(s)
-	if ok {
-		b.ClearPiece(toPiece, s)
-	}
-	b.SetPieceOnEmptySquare(p, s)
-}
-
-// MovePieceToEmptySquare moves a piece to an empty square.
-// When available, this is more performant than MovePiece.
-func (b *Board) MovePieceToEmptySquare(p Piece, from, to Square) {
+// Move moves a piece between squares.
+// Any piece previously occupying the destination square is removed.
+func (b *Board) Move(p Piece, from, to Square) {
+	b.Clear(to)
 	b.Types[p.Type].Clear(from).Set(to)
 	b.Colors[p.Color.Int()].Clear(from).Set(to)
 }
 
-// MovePiece moves a piece between squares.
-// Any piece on the destination square is removed.
-func (b *Board) MovePiece(p Piece, from, to Square) {
-	toPiece, ok := b.Get(to)
-	if ok {
-		b.ClearPiece(toPiece, to)
+// Clear clears the piece on a square, if any.
+func (b *Board) Clear(s Square) {
+	for i := range b.Types {
+		b.Types[i].Clear(s)
 	}
-	b.MovePieceToEmptySquare(p, from, to)
-}
-
-// ClearPiece clears a piece from the given square, if any.
-func (b *Board) ClearPiece(p Piece, s Square) {
-	b.Types[p.Type].Clear(s)
-	b.Colors[p.Color.Int()].Clear(s)
+	for i := range b.Colors {
+		b.Colors[i].Clear(s)
+	}
 }
 
 // CastleRights represents the castling rights of both players.
