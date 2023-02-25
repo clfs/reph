@@ -17,11 +17,6 @@ func NewGame() *Game {
 	}
 }
 
-// FirstPosition returns the first position of the game.
-func (g *Game) FirstPosition() Position {
-	return g.Positions[0]
-}
-
 // CurrentPosition returns the current game position.
 func (g *Game) CurrentPosition() Position {
 	return g.Positions[len(g.Positions)-1]
