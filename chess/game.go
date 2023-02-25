@@ -2,14 +2,10 @@ package chess
 
 // A Game contains the history of a chess game.
 type Game struct {
-	Positions []Position
-	Moves     []Move
-
-	// The number of half moves since the last capture or pawn advance.
-	HalfMoveClock int
-
-	// The full move number for the next move.
-	FullMoveNumber int
+	Positions      []Position
+	Moves          []Move
+	HalfMoveClock  int // Half moves since the last capture or pawn advance.
+	FullMoveNumber int // Full move number for the next move.
 }
 
 // NewGame returns a new game.
