@@ -51,7 +51,6 @@ func (p *Position) Move(m Move) (reset bool) {
 
 	switch fromPiece.Type {
 	case Rook:
-		// Moving a rook from its starting square relinquishes one castling right.
 		switch {
 		case fromPiece.Color == White && m.From == A1:
 			castleRightsUsed = WhiteQueenSide
@@ -63,7 +62,6 @@ func (p *Position) Move(m Move) (reset bool) {
 			castleRightsUsed = BlackKingSide
 		}
 	case King:
-		// King moves always relinquish both castling rights.
 		if fromPiece.Color == White {
 			castleRightsUsed = WhiteKingSide | WhiteQueenSide
 		} else {
