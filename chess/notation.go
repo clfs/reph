@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// StartingFEN is the FEN string for the starting position.
 const StartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 var fenToPiece = map[string]Piece{
