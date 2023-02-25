@@ -6,27 +6,19 @@ import (
 )
 
 func TestBitboard(t *testing.T) {
-	setThenGet := func(b Bitboard, s Square) bool {
-		return b.Set(s).Get(s)
+	f := func(b Bitboard, s Square) bool {
+		if !b.Set(s).Get(s) {
+			return false
+		}
+		if b.Clear(s).Get(s) {
+			return false
+		}
+		if b.Get(s) == b.Toggle(s).Get(s) {
+			return false
+		}
+		return true
 	}
-
-	if err := quick.Check(setThenGet, nil); err != nil {
-		t.Error(err)
-	}
-
-	clearThenGet := func(b Bitboard, s Square) bool {
-		return !b.Clear(s).Get(s)
-	}
-
-	if err := quick.Check(clearThenGet, nil); err != nil {
-		t.Error(err)
-	}
-
-	toggleNotEq := func(b Bitboard, s Square) bool {
-		return b.Get(s) != b.Toggle(s).Get(s)
-	}
-
-	if err := quick.Check(toggleNotEq, nil); err != nil {
+	if err := quick.Check(f, nil); err != nil {
 		t.Error(err)
 	}
 }
