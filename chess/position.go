@@ -1,6 +1,6 @@
 package chess
 
-// A Position weakly describes the state of a chess game.
+// A Position describes an arbitrary chess position.
 type Position struct {
 	Board          Board
 	CastleRights   CastleRights
