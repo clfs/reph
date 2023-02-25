@@ -151,7 +151,7 @@ func (b *Board) Move(p Piece, from, to Square) {
 	b.Colors[p.Color.Int()].Clear(from).Set(to)
 }
 
-// Clear clears the piece on a square, if any.
+// Clear removes a piece from a square.
 func (b *Board) Clear(s Square) {
 	for i := range b.Types {
 		b.Types[i].Clear(s)
